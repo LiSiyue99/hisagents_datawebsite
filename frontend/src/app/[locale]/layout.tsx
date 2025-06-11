@@ -54,4 +54,11 @@ export default async function RootLayout({
       </body>
     </html>
   );
+}
+
+export function generateStaticParams() {
+  return [
+    { locale: 'en' },
+    { locale: 'zh' },
+  ];
 } 
