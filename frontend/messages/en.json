@@ -1,0 +1,99 @@
+{
+  "HomePage": {
+    "title": "HistBench Dataset browser",
+    "description": "Explore, filter, and view questions from HistBench.",
+    "statsTitle": "Data Overview",
+    "loadingError": "Failed to load questions. Please ensure the backend service is running (python start_backend.py)",
+    "loadingDetailsError": "Failed to load details for question #{taskId}",
+    "imagePreviewTitle": "Image Preview",
+    "imagePreviewAlt": "Preview",
+    "errorOccurred": "An error occurred!",
+    "totalQuestions": "Total Questions",
+    "withMediaFiles": "With Media Files",
+    "difficultyDistribution": "Question Difficulty Distribution",
+    "levelLabel": "Level {key}",
+    "questionsCount": "Questions",
+    "searchLabel": "Search Questions",
+    "searchInputPlaceholder": "Enter keywords...",
+    "difficultyLabel": "Difficulty",
+    "allLevels": "All Levels",
+    "answerTypeLabel": "Answer Type",
+    "allTypes": "All Types",
+    "mediaFilesLabel": "Media Files",
+    "mediaFilesPlaceholder": "Media Files",
+    "anyMedia": "Any",
+    "hasMedia": "Yes",
+    "noMedia": "No",
+    "loading": "Loading...",
+    "applyFilters": "Apply Filters",
+    "loadingPleaseWait": "Loading, please wait..."
+  },
+  "IndexPanel": {
+    "title": "Question Index",
+    "invalidIdError": "Please enter a valid question ID between 1 and {totalQuestions}",
+    "questionTitle": "Question #{id}"
+  },
+  "QuestionCard": {
+    "viewDetails": "View Details",
+    "questionTitle": "Question",
+    "relatedFiles": "Related Files",
+    "answer": "Answer",
+    "taskTitle": "Task",
+    "more": "more...",
+    "videoNotSupported": "Your browser does not support the video tag.",
+    "audioNotSupported": "Your browser does not support the audio tag.",
+    "file": "File",
+    "view": "Click to view"
+  },
+  "QuestionDetailDialog": {
+    "title": "Question Details",
+    "question": "Question",
+    "answer": "Answer",
+    "close": "Close",
+    "dialogTitle": "Task #{taskId} - Details",
+    "relatedFiles": "Related Files",
+    "file": "File: {filePath}",
+    "downloadFile": "Download File",
+    "videoNotSupported": "Your browser does not support the video tag.",
+    "audioNotSupported": "Your browser does not support the audio tag.",
+    "correctAnswer": "Correct Answer",
+    "answerExplanation": "Answer Explanation"
+  },
+  "LanguageSwitcher": {
+    "language": "Language",
+    "english": "English",
+    "chinese": "Chinese"
+  },
+  "Levels": {
+    "1": "Easy",
+    "2": "Medium",
+    "3": "Hard",
+    "unknown": "Unknown"
+  },
+  "AnswerTypes": {
+    "exactMatch": "Exact Match",
+    "multipleChoice": "Multiple Choice"
+  },
+  "DataOverview": {
+    "title": "Dataset Details",
+    "paperTitle": "Paper Source",
+    "paperName": "On Path to Multimodal Historical Reasoning: HistBench and HistAgent",
+    "citation": "Cite as",
+    "citationText": "arXiv:2505.20246 [cs.AI] (or arXiv:2505.20246v2 [cs.AI] for this version)",
+    "doiLink": "DOI Link",
+    "datasetSource": "Dataset Source",
+    "githubRepo": "GitHub Repository",
+    "difficultyTitle": "Difficulty Levels",
+    "difficultyDescription": "Differences in difficulty mainly reflect differences in required source processing, historical reasoning, and interdisciplinary complexity.",
+    "level1Title": "• Level 1 (Basic)",
+    "level1Desc": "– Source verification and factual retrieval",
+    "level2Title": "• Level 2 (Intermediate)",
+    "level2Desc": "– Text-image synthesis and temporal reasoning",
+    "level3Title": "• Level 3 (Challenging)",
+    "level3Desc": "– Multilingual, multimodal, and interdisciplinary integration",
+    "languageDistributionTitle": "Language Distribution",
+    "language": "Language",
+    "questionCount": "Question Count",
+    "percentage": "Percentage"
+  }
+} 

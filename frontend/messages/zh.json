@@ -1,0 +1,99 @@
+{
+  "HomePage": {
+    "title": "HistBench 数据集浏览工具",
+    "description": "探索、筛选和查看HistBench数据集的题目材料及其正确答案",
+    "statsTitle": "数据概览",
+    "loadingError": "加载题目失败，请确保后端服务已启动 (python start_backend.py)",
+    "loadingDetailsError": "加载题目 #{taskId} 详情失败",
+    "imagePreviewTitle": "图片预览",
+    "imagePreviewAlt": "预览",
+    "errorOccurred": "发生错误!",
+    "totalQuestions": "总题目数",
+    "withMediaFiles": "含媒体文件",
+    "difficultyDistribution": "题目难度分布",
+    "levelLabel": "难度 {key}",
+    "questionsCount": "题目数",
+    "searchLabel": "搜索问题",
+    "searchInputPlaceholder": "输入关键词...",
+    "difficultyLabel": "难度",
+    "allLevels": "所有难度",
+    "answerTypeLabel": "答案类型",
+    "allTypes": "所有类型",
+    "mediaFilesLabel": "媒体文件",
+    "mediaFilesPlaceholder": "媒体文件",
+    "anyMedia": "不限",
+    "hasMedia": "有",
+    "noMedia": "无",
+    "loading": "加载中...",
+    "applyFilters": "应用筛选",
+    "loadingPleaseWait": "加载中，请稍候..."
+  },
+  "IndexPanel": {
+    "title": "问题索引",
+    "invalidIdError": "请输入 1 到 {totalQuestions} 之间的有效题号",
+    "questionTitle": "题目 #{id}"
+  },
+  "QuestionCard": {
+    "viewDetails": "查看详情",
+    "questionTitle": "题目",
+    "relatedFiles": "相关文件",
+    "answer": "答案",
+    "taskTitle": "题目",
+    "more": "更多...",
+    "videoNotSupported": "您的浏览器不支持视频播放",
+    "audioNotSupported": "您的浏览器不支持音频播放",
+    "file": "文件",
+    "view": "点击查看"
+  },
+  "QuestionDetailDialog": {
+    "title": "问题详情",
+    "question": "问题",
+    "answer": "答案",
+    "close": "关闭",
+    "dialogTitle": "题目 #{taskId} - 详细信息",
+    "relatedFiles": "相关文件",
+    "file": "文件: {filePath}",
+    "downloadFile": "下载文件",
+    "videoNotSupported": "您的浏览器不支持视频播放",
+    "audioNotSupported": "您的浏览器不支持音频播放",
+    "correctAnswer": "正确答案",
+    "answerExplanation": "答案解释"
+  },
+  "LanguageSwitcher": {
+    "language": "语言",
+    "english": "英语",
+    "chinese": "中文"
+  },
+  "Levels": {
+    "1": "简单",
+    "2": "中等",
+    "3": "困难",
+    "unknown": "未知"
+  },
+  "AnswerTypes": {
+    "exactMatch": "准确匹配",
+    "multipleChoice": "选择题"
+  },
+  "DataOverview": {
+    "title": "数据集详情",
+    "paperTitle": "论文来源",
+    "paperName": "On Path to Multimodal Historical Reasoning: HistBench and HistAgent",
+    "citation": "引用",
+    "citationText": "arXiv:2505.20246 [cs.AI] (或 arXiv:2505.20246v2 [cs.AI] for this version)",
+    "doiLink": "DOI链接",
+    "datasetSource": "数据集来源",
+    "githubRepo": "GitHub仓库",
+    "difficultyTitle": "难度说明",
+    "difficultyDescription": "难度的差别主要体现在所需来源处理、历史推理和跨学科复杂性方面的差异。",
+    "level1Title": "• 1级 (基础)",
+    "level1Desc": "– 来源验证和事实检索",
+    "level2Title": "• 2级 (中等)",
+    "level2Desc": "– 文本-图像综合和时间推理",
+    "level3Title": "• 3级 (挑战)",
+    "level3Desc": "– 多语言、多模态和跨学科整合",
+    "languageDistributionTitle": "语言分布",
+    "language": "语言",
+    "questionCount": "题目数",
+    "percentage": "百分比"
+  }
+} 
