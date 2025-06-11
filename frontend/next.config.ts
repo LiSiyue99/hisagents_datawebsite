@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export' as const,
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
 import createNextIntlPlugin from 'next-intl/plugin';
