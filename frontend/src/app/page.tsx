@@ -33,6 +33,8 @@ export default function HomePage() {
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [previewZoom, setPreviewZoom] = useState<number>(1)
 
+  const isClient = typeof window !== 'undefined';
+
   const fetchQuestions = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -186,14 +188,16 @@ export default function HomePage() {
             <Card className="md:col-span-2">
                 <CardHeader><CardTitle>题目难度分布</CardTitle></CardHeader>
                 <CardContent>
-                    <ResponsiveContainer width="100%" height={100}>
+                    {isClient && (
+                      <ResponsiveContainer width="100%" height={100}>
                         <BarChart data={levelChartData}>
-                            <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-                            <YAxis fontSize={12} tickLine={false} axisLine={false} />
-                            <Tooltip />
-                            <Bar dataKey="题目数" fill="#8884d8" />
+                          <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
+                          <YAxis fontSize={12} tickLine={false} axisLine={false} />
+                          <Tooltip />
+                          <Bar dataKey="题目数" fill="#8884d8" />
                         </BarChart>
-                    </ResponsiveContainer>
+                      </ResponsiveContainer>
+                    )}
                 </CardContent>
             </Card>
           </div>

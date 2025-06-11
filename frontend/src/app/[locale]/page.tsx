@@ -71,6 +71,8 @@ export default function HomePage() {
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [previewZoom, setPreviewZoom] = useState<number>(1)
 
+  const isClient = typeof window !== 'undefined';
+
   const fetchQuestions = useCallback(async () => {
     setLoading(true)
     setError(null)

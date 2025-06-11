@@ -1,9 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export' as const,
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // ... 这里可继续添加其他需要的 Next.js 配置
 };
 
 import createNextIntlPlugin from 'next-intl/plugin';
