@@ -104,45 +104,100 @@ const MediaViewer: React.FC<MediaViewerProps> = ({ fileUrl, fileName }) => {
   const [error, setError] = useState<FetchError | null>(null);
   const [content, setContent] = useState<React.ReactNode>(null);
   const [viewerVisible, setViewerVisible] = useState(false);
+  const [isViewingInBrowser, setIsViewingInBrowser] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const objectUrlsRef = useRef<string[]>([]);
   const ext = fileName.split('.').pop()?.toLowerCase() || '';
 
-  // 安全的 fetch 函数
-  const safeFetch = async (url: string) => {
+  // 从完整URL中提取文件名
+  const displayFileName = fileName.includes('/') 
+    ? fileName.split('/').pop() || fileName 
+    : fileName;
+
+  const handleViewInBrowser = async () => {
+    setIsViewingInBrowser(true);
     try {
-      // 如果是相对路径，直接获取
+      let convertedBlob: Blob | null = null;
+
+      if (['heic', 'heif'].includes(ext)) {
+        // 方案一: 尝试通过 OSS 即时转换
+        try {
+          const ossUrl = `${fileUrl}?x-oss-process=image/format,jpg`;
+          const response = await fetch(ossUrl);
+          if (!response.ok) throw new Error('OSS request failed');
+          const blob = await response.blob();
+          if (blob.type !== 'image/jpeg') {
+            throw new Error(`OSS did not return JPEG, but ${blob.type}`);
+          }
+          convertedBlob = blob;
+        } catch (ossError) {
+          console.warn('OSS conversion failed, falling back to client-side conversion:', ossError);
+          // 方案二: 客户端转换
+          const heic2any = (await import('heic2any')).default;
+          const originalResponse = await safeFetch(fileUrl);
+          const originalBlob = await originalResponse.blob();
+          const result = await heic2any({ blob: originalBlob, toType: 'image/jpeg' });
+          convertedBlob = Array.isArray(result) ? result[0] : result;
+        }
+      } else {
+        // 对于其他可直接预览的文件类型
+        const response = await safeFetch(fileUrl);
+        convertedBlob = await response.blob();
+      }
+
+      if (convertedBlob) {
+        const objectUrl = URL.createObjectURL(convertedBlob);
+        window.open(objectUrl, '_blank', 'noopener,noreferrer');
+        // 浏览器通常会在标签页关闭时自动回收blob URL，但手动管理更保险
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+      } else {
+        throw new Error('无法获取可预览的文件版本');
+      }
+    } catch (viewError) {
+      console.error('Failed to view file in browser:', viewError);
+      setError({
+        message: '无法在浏览器中打开，请尝试直接下载文件。',
+      });
+    } finally {
+      setIsViewingInBrowser(false);
+    }
+  };
+
+  // 安全的 fetch 函数
+  const safeFetch = async (url: string): Promise<Response> => {
+    try {
+      // 1. 如果是相对路径，直接获取
       if (url.startsWith('/')) {
-        const response = await fetch(url);
+        const response = await fetch(url, { next: { revalidate: 0 } });
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response;
       }
-
-      // 对于外部 URL，首先尝试直接获取
+      
+      // 2. 对于外部 URL，优先直接获取（CORS 配置好后，这应该是首选）
       try {
         const response = await fetch(url, {
-          headers: {
-            'Accept': '*/*',
-          },
-          next: { revalidate: 0 }, // 禁用缓存
+          headers: { 'Accept': '*/*' },
+          next: { revalidate: 0 },
         });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        // 如果响应不是2xx，或者是一个不透明重定向（opaque redirect），则认为直接获取失败，尝试代理
+        // 不透明重定向通常是CORS策略不完全匹配的标志
+        if (!response.ok || response.type === 'opaque') {
+          throw new Error(`Direct fetch failed with status: ${response.status} or opaque response`);
         }
         return response;
-      } catch (directError) {
-        console.warn('Direct fetch failed, trying proxy:', directError);
+      } catch (error) {
+        console.warn(`Direct fetch for ${url} failed, falling back to proxy. Error:`, error);
         
-        // 如果直接获取失败，尝试通过代理
+        // 3. 使用代理作为备用方案
         const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
         const proxyResponse = await fetch(proxyUrl, {
-          next: { revalidate: 0 }, // 禁用缓存
+          next: { revalidate: 0 },
         });
         
         if (!proxyResponse.ok) {
-          throw new Error(`Proxy HTTP error! status: ${proxyResponse.status}`);
+          throw new Error(`Proxy fetch failed with status: ${proxyResponse.status}`);
         }
         return proxyResponse;
       }
@@ -253,48 +308,181 @@ const MediaViewer: React.FC<MediaViewerProps> = ({ fileUrl, fileName }) => {
 
         // 3. heic/heif 图片
         if (["heic", "heif"].includes(ext)) {
-          const heic2any = (await import('heic2any')).default;
-          const response = await safeFetch(fileUrl);
-          const blob = await response.blob();
-          const result = await heic2any({ blob, toType: "image/jpeg" });
-          
           let url = '';
-          if (Array.isArray(result)) {
-            url = URL.createObjectURL(result[0]);
-          } else {
-            url = URL.createObjectURL(result);
-          }
-          
-          if (mounted) {
-            setContent(
-              <div>
-                <img 
-                  src={url} 
-                  alt={fileName} 
-                  className="max-w-full max-h-96 object-contain rounded-lg cursor-pointer"
-                  onClick={() => setViewerVisible(true)}
-                />
-                <Viewer
-                  visible={viewerVisible}
-                  onClose={() => setViewerVisible(false)}
-                  images={[{ src: url, alt: fileName }]}
-                  zoomable
-                  rotatable
-                  scalable
-                />
-              </div>
-            );
+          try {
+            // 1. 导入模块
+            let heic2any;
+            try {
+              const heic2anyModule = await import('heic2any');
+              heic2any = heic2anyModule.default || heic2anyModule;
+              if (!heic2any) {
+                throw new Error('HEIC 转换模块加载失败');
+              }
+            } catch (importError) {
+              if (mounted) {
+                setError({
+                  message: '无法加载 HEIC 转换模块，请检查网络连接',
+                  status: 500
+                });
+              }
+              return;
+            }
+
+            // 2. 获取文件内容
+            let blob;
+            try {
+              const response = await safeFetch(fileUrl);
+              blob = await response.blob();
+              
+              // 验证文件大小（如果超过 50MB 可能会导致浏览器崩溃）
+              if (blob.size > 50 * 1024 * 1024) {
+                throw new Error('文件太大，无法在浏览器中处理');
+              }
+            } catch (fetchError) {
+              if (mounted) {
+                setError({
+                  message: '无法获取 HEIC 文件，请检查文件是否可访问',
+                  status: (fetchError as FetchError).status || 500
+                });
+              }
+              return;
+            }
+
+            // 3. 转换 HEIC 到 JPEG
+            let result;
+            try {
+              const conversionOptions = {
+                blob,
+                toType: "image/jpeg",
+                quality: 0.8
+              };
+              result = await heic2any(conversionOptions);
+              
+              if (!result) {
+                throw new Error('转换结果为空');
+              }
+            } catch (conversionError) {
+              if (mounted) {
+                const errorMessage = conversionError instanceof Error
+                  ? `HEIC 转换失败: ${conversionError.message}`
+                  : 'HEIC 转换过程中发生未知错误';
+                setError({
+                  message: errorMessage,
+                  status: 500
+                });
+              }
+              return;
+            }
+
+            // 4. 创建预览 URL
+            try {
+              if (Array.isArray(result)) {
+                if (result.length === 0) {
+                  throw new Error('转换结果为空数组');
+                }
+                url = URL.createObjectURL(result[0]);
+              } else {
+                url = URL.createObjectURL(result);
+              }
+            } catch (urlError) {
+              if (mounted) {
+                setError({
+                  message: 'HEIC 转换成功但无法创建预览，请尝试下载文件',
+                  status: 500
+                });
+              }
+              return;
+            }
+
+            // 5. 渲染图片
+            if (mounted) {
+              setContent(
+                <div>
+                  <img 
+                    src={url} 
+                    alt={fileName} 
+                    className="max-w-full max-h-96 object-contain rounded-lg cursor-pointer"
+                    onClick={() => setViewerVisible(true)}
+                    onError={() => {
+                      if (mounted) {
+                        setError({ 
+                          message: 'HEIC 转换成功但图片显示失败，请尝试刷新页面',
+                          status: 500 
+                        });
+                        if (url) {
+                          URL.revokeObjectURL(url);
+                        }
+                      }
+                    }}
+                  />
+                  <Viewer
+                    visible={viewerVisible}
+                    onClose={() => {
+                      setViewerVisible(false);
+                      if (url) {
+                        URL.revokeObjectURL(url);
+                      }
+                    }}
+                    images={[{ src: url, alt: fileName }]}
+                    zoomable
+                    rotatable
+                    scalable
+                  />
+                </div>
+              );
+            }
+          } catch (error: unknown) {
+            // 最终的错误处理
+            if (mounted) {
+              let errorMessage = '处理 HEIC 图片时发生错误';
+              let errorStatus = 500;
+
+              if (error instanceof Error) {
+                errorMessage = `HEIC 处理错误: ${error.message}`;
+              } else if (typeof error === 'string') {
+                errorMessage = `HEIC 处理错误: ${error}`;
+              } else if (error && typeof error === 'object' && 'message' in error) {
+                errorMessage = `HEIC 处理错误: ${(error as { message: string }).message}`;
+              }
+
+              if (error && typeof error === 'object' && 'status' in error) {
+                errorStatus = Number((error as { status: number }).status) || 500;
+              }
+
+              console.error('HEIC 处理详细错误:', {
+                error,
+                message: errorMessage,
+                status: errorStatus
+              });
+
+              setError({
+                message: errorMessage,
+                status: errorStatus
+              });
+            }
+
+            // 清理资源
+            if (url) {
+              URL.revokeObjectURL(url);
+            }
           }
           return;
         }
 
         // 4. PDF 文件
         if (ext === "pdf") {
-          setContent(
-            <div className="max-w-full">
-              <PDFViewer fileUrl={fileUrl} />
-            </div>
-          );
+          const response = await safeFetch(fileUrl);
+          const blob = await response.blob();
+          const objectUrl = URL.createObjectURL(blob);
+          objectUrlsRef.current.push(objectUrl);
+
+          if (mounted) {
+            setContent(
+              <div className="max-w-full">
+                <PDFViewer fileUrl={objectUrl} />
+              </div>
+            );
+          }
           return;
         }
 
@@ -348,14 +536,11 @@ const MediaViewer: React.FC<MediaViewerProps> = ({ fileUrl, fileName }) => {
       } catch (err) {
         console.error('文件处理错误:', err);
         if (mounted) {
-          if ((err as FetchError).status) {
-            setError(err as FetchError);
-          } else {
-            setError({
-              message: err instanceof Error ? err.message : '文件处理失败',
-              status: 500
-            });
-          }
+          const errorMessage = err instanceof Error ? err.message : '文件处理失败，请稍后重试';
+          setError({
+            message: errorMessage,
+            status: (err as FetchError).status || 500
+          });
         }
       } finally {
         if (mounted) {
@@ -368,6 +553,9 @@ const MediaViewer: React.FC<MediaViewerProps> = ({ fileUrl, fileName }) => {
 
     return () => {
       mounted = false;
+      // 组件卸载或 effect 重新运行时，清理创建的 object-url
+      objectUrlsRef.current.forEach(URL.revokeObjectURL);
+      objectUrlsRef.current = [];
     };
   }, [fileUrl, fileName, ext, viewerVisible]);
 
@@ -377,18 +565,51 @@ const MediaViewer: React.FC<MediaViewerProps> = ({ fileUrl, fileName }) => {
 
   if (error) {
     return (
-      <div className="text-red-500 py-8 text-center">
-        <p>{error.message}</p>
+      <div className="bg-red-50 border border-red-200 text-center p-6 rounded-lg">
+        <p className="text-base font-semibold text-red-800 mb-4">{error.message}</p>
         {error.status !== 404 && (
-          <a href={fileUrl} download className="text-blue-600 hover:underline text-sm mt-2 block">
-            点击下载文件
-          </a>
+          <div className="flex justify-center items-center gap-4">
+            <button
+              onClick={handleViewInBrowser}
+              disabled={isViewingInBrowser}
+              className="px-4 py-2 bg-blue-600 text-white font-medium rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
+            >
+              {isViewingInBrowser ? '正在处理...' : '🌐 在浏览器中查看'}
+            </button>
+            <a
+              href={fileUrl}
+              download={displayFileName}
+              className="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-md border border-gray-300 shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+            >
+              📥 下载文件
+            </a>
+          </div>
         )}
       </div>
     );
   }
 
-  return <div>{content}</div>;
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm text-gray-600">
+          <span className="font-medium">文件名：</span>
+          <span className="font-normal">{displayFileName}</span>
+        </p>
+        <a
+          href={fileUrl}
+          download={displayFileName}
+          className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          下载
+        </a>
+      </div>
+      {content}
+    </div>
+  );
 };
 
 // 导出带错误边界的组件

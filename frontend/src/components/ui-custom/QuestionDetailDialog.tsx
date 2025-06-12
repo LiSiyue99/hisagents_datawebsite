@@ -28,7 +28,6 @@ export function QuestionDetailDialog({ question, open, onOpenChange, onImagePrev
     return (
       <div className="space-y-2">
         <MediaViewer fileUrl={mediaUrl} fileName={fileName} />
-        <a href={mediaUrl} download className="text-blue-600 hover:underline text-sm">下载文件</a>
       </div>
     );
   }
@@ -52,7 +51,6 @@ export function QuestionDetailDialog({ question, open, onOpenChange, onImagePrev
               <div className="space-y-4">
                 {question.media_files.map((filePath: string, index: number) => (
                   <div key={index} className="border rounded-lg p-4 bg-gray-50">
-                    <p className="text-sm text-gray-600 mb-2 break-all">{t('file', { filePath })}</p>
                     {renderMedia(filePath)}
                   </div>
                 ))}

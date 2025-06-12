@@ -43,9 +43,6 @@ def main():
     if not Path("data/processed/Sheet1.csv").exists():
         print("❌ 数据文件不存在，请先准备好数据文件")
         return
-    if not Path("data/raw/HistBench_complete").exists():
-        print("❌ 媒体文件目录不存在，请先下载完整数据集")
-        return
     # 直接启动服务
     start_backend()
 

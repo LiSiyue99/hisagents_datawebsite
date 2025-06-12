@@ -20,8 +20,8 @@ export default function PDFViewer({ fileUrl }: PDFViewerProps) {
     sidebarTabs: (defaultTabs) => [],  // 禁用侧边栏
   });
 
-  // 如果是外部链接，通过代理获取
-  const resolvedUrl = fileUrl.startsWith('/') ? fileUrl : `/api/proxy?url=${encodeURIComponent(fileUrl)}`;
+  // 如果是外部链接，通过代理获取 (This logic is now handled by MediaViewer)
+  // const resolvedUrl = fileUrl.startsWith('/') ? fileUrl : `/api/proxy?url=${encodeURIComponent(fileUrl)}`;
 
   const handleDocumentLoad = (doc: any) => {
     console.log('PDF 加载成功，总页数:', doc.numPages);
@@ -31,7 +31,7 @@ export default function PDFViewer({ fileUrl }: PDFViewerProps) {
     <div className="h-[800px] w-full border rounded-lg overflow-hidden bg-white">
       <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
         <Viewer
-          fileUrl={resolvedUrl}
+          fileUrl={fileUrl}
           plugins={[defaultLayoutPluginInstance]}
           defaultScale={1}
           onDocumentLoad={handleDocumentLoad}

@@ -15,12 +15,15 @@ from typing import List, Optional
 from pydantic import BaseModel
 import mimetypes
 from contextlib import asynccontextmanager
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
 from io import BytesIO
 from PIL import Image
 
 # 全局变量存储数据
 df = None
+
+# OSS 公网前缀
+OSS_BASE_URL = "https://hisagent-0612.oss-cn-shanghai.aliyuncs.com/HistBench_complete"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -28,9 +31,8 @@ async def lifespan(app: FastAPI):
     global df
     print("🚀 应用启动，开始加载数据...")
     load_data()
-    # 挂载静态文件目录
-    app.mount("/media", StaticFiles(directory=str(MEDIA_DIR)), name="media")
-    print("✅ 数据和静态目录加载完成")
+    # 不再挂载本地媒体目录，也不报错
+    print("✅ 数据加载完成（未挂载本地媒体目录，所有媒体请访问OSS直链）")
     yield
     # 应用关闭时执行 (如果需要)
     print("应用关闭")
@@ -108,24 +110,14 @@ def load_data():
     return df
 
 def find_media_files(file_name: str) -> List[str]:
-    """根据文件名查找对应的媒体文件"""
+    """根据文件名生成 OSS 公网直链（不依赖本地文件）"""
     if not file_name:
         return []
-    
     media_files = []
-    
-    # 分割多个文件名（用分号分隔）
     file_names = [f.strip() for f in file_name.split(';') if f.strip()]
-    
     for fname in file_names:
-        # 查找完全匹配的文件
-        for media_file in MEDIA_DIR.rglob("*"):
-            if media_file.is_file() and media_file.name == fname:
-                # 返回相对路径
-                relative_path = str(media_file.relative_to(MEDIA_DIR))
-                media_files.append(relative_path)
-                break
-    
+        # 直接拼接 OSS URL
+        media_files.append(f"{OSS_BASE_URL}/{fname}")
     return media_files
 
 @app.get("/", summary="API根路径")
@@ -244,53 +236,6 @@ async def get_question(task_id: int):
         answer_explanation=row['Answer Explanation'] if row['Answer Explanation'] else None,
         media_files=media_files
     )
-
-@app.get("/media-info/{file_path:path}", summary="获取媒体文件信息")
-async def get_media_info(file_path: str):
-    """获取媒体文件的类型和大小信息"""
-    full_path = MEDIA_DIR / file_path
-    
-    if not full_path.exists():
-        raise HTTPException(status_code=404, detail="文件不存在")
-    
-    # 获取文件信息
-    file_size = full_path.stat().st_size
-    mime_type, _ = mimetypes.guess_type(str(full_path))
-    
-    return {
-        "file_name": full_path.name,
-        "file_size": file_size,
-        "mime_type": mime_type,
-        "file_extension": full_path.suffix.lower(),
-        "is_image": mime_type and mime_type.startswith("image/"),
-        "is_video": mime_type and mime_type.startswith("video/"),
-        "is_audio": mime_type and mime_type.startswith("audio/"),
-        "is_pdf": full_path.suffix.lower() == ".pdf"
-    }
-
-@app.get("/media-convert/{file_path:path}", summary="媒体文件动态转换（目前仅支持TIFF→PNG）")
-async def convert_media(file_path: str):
-    """如果请求的文件是 .tif/.tiff，则在线转换为 PNG 并返回。否则直接返回原文件。"""
-    full_path = MEDIA_DIR / file_path
-    if not full_path.exists():
-        raise HTTPException(status_code=404, detail="File not found")
-
-    ext = full_path.suffix.lower()
-
-    # 仅处理 TIFF
-    if ext in {'.tif', '.tiff'}:
-        try:
-            img = Image.open(full_path)
-            buf = BytesIO()
-            img.save(buf, format="PNG")
-            buf.seek(0)
-            return StreamingResponse(buf, media_type="image/png")
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"TIFF conversion failed: {e}")
-
-    # 其他格式直接返回原始文件
-    mime, _ = mimetypes.guess_type(full_path)
-    return FileResponse(full_path, media_type=mime or "application/octet-stream")
 
 if __name__ == "__main__":
     import uvicorn
