@@ -90,6 +90,11 @@ export async function getStats(): Promise<Stats> {
 
 // 获取媒体文件URL
 export function getMediaUrl(filePath: string): string {
+  // 如果已经是完整 URL，直接返回
+  if (/^https?:\/\//i.test(filePath)) {
+    return filePath;
+  }
+
   const ext = filePath.split('.').pop()?.toLowerCase();
   if (ext === 'tif' || ext === 'tiff') {
     return `${API_BASE_URL}/media-convert/${filePath}`;

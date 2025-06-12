@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Question, getMediaUrl } from "@/lib/api"
 import { useTranslations } from 'next-intl';
+import MediaViewer from './MediaViewer';
 
 interface QuestionDetailDialogProps {
   question: Question | null
@@ -22,72 +23,14 @@ export function QuestionDetailDialog({ question, open, onOpenChange, onImagePrev
   }
 
   const renderMedia = (filePath: string) => {
-    const ext = filePath.split('.').pop()?.toLowerCase()
-    const mediaUrl = getMediaUrl(filePath)
-
-    const downloadLink = (
-      <a
-        href={mediaUrl}
-        download
-        className="text-blue-600 hover:underline text-sm"
-      >
-        {t('downloadFile')}
-      </a>
-    )
-
-    if ([
-      'jpg', 'jpeg', 'png', 'gif', 'webp', 'tif', 'tiff', 'heic', 'heif'
-    ].includes(ext || '')) {
-      return (
-        <div className="space-y-2">
-          <img
-            src={mediaUrl}
-            alt={`Task ${question.task_id} media`}
-            className="max-w-full max-h-96 object-contain rounded-lg cursor-zoom-in"
-            onClick={() => onImagePreview(mediaUrl)}
-          />
-          {downloadLink}
-        </div>
-      )
-    }
-
-    if (['mp4', 'avi', 'mov'].includes(ext || '')) {
-      return (
-        <div className="space-y-2">
-          <video controls className="max-w-full max-h-96" src={mediaUrl}>
-            {t('videoNotSupported')}
-          </video>
-          {downloadLink}
-        </div>
-      )
-    }
-
-    if (['mp3', 'm4a', 'wav'].includes(ext || '')) {
-      return (
-        <div className="space-y-2">
-          <audio controls className="w-full" src={mediaUrl}>
-            {t('audioNotSupported')}
-          </audio>
-          {downloadLink}
-        </div>
-      )
-    }
-
-    if (ext === 'pdf') {
-      return (
-        <div className="space-y-2">
-          <embed src={mediaUrl} type="application/pdf" className="w-full h-96" />
-          {downloadLink}
-        </div>
-      )
-    }
-
+    const fileName = filePath.split('/').pop() || filePath;
+    const mediaUrl = getMediaUrl(filePath);
     return (
-      <div className="p-4 border rounded-lg bg-gray-50 space-y-2">
-        <p className="text-sm text-gray-600 break-all">{t('file', { filePath })}</p>
-        {downloadLink}
+      <div className="space-y-2">
+        <MediaViewer fileUrl={mediaUrl} fileName={fileName} />
+        <a href={mediaUrl} download className="text-blue-600 hover:underline text-sm">下载文件</a>
       </div>
-    )
+    );
   }
 
   return (
