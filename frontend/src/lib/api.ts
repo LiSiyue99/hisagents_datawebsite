@@ -29,7 +29,7 @@ export interface Stats {
   total_questions: number
   level_distribution: Record<string, number>
   answer_type_distribution: Record<string, number>
-  has_media_count: number
+  media_type_distribution: Record<string, number>
 }
 
 export interface GetQuestionsParams {
@@ -38,7 +38,7 @@ export interface GetQuestionsParams {
   level?: number
   answer_type?: string
   search?: string
-  has_media?: boolean
+  media_type?: string
 }
 
 // 获取题目列表

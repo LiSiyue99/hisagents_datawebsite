@@ -19,6 +19,13 @@ export function QuestionCard({ question, onShowDetails }: QuestionCardProps) {
 
   // 渲染媒体文件
   const renderMedia = (filePath: string) => {
+    if (filePath.toLowerCase().startsWith('reference:')) {
+      return (
+        <div className="p-4 border rounded-lg bg-gray-50">
+          <p className="text-sm text-gray-600 whitespace-pre-wrap">{filePath}</p>
+        </div>
+      )
+    }
     const ext = filePath.split('.').pop()?.toLowerCase()
     const mediaUrl = getMediaUrl(filePath)
     

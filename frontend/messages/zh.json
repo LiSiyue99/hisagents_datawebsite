@@ -1,6 +1,7 @@
 {
   "HomePage": {
     "title": "HistBench 数据集浏览工具",
+    "subtitle": "一个现代化的历史问题数据集探索平台",
     "description": "探索、筛选和查看HistBench数据集的题目材料及其正确答案",
     "statsTitle": "数据概览",
     "loadingError": "加载题目失败，请确保后端服务已启动 (python start_backend.py)",
@@ -11,22 +12,30 @@
     "totalQuestions": "总题目数",
     "withMediaFiles": "含媒体文件",
     "difficultyDistribution": "题目难度分布",
-    "levelLabel": "难度 {key}",
+    "levelLabel": "难度级别",
     "questionsCount": "题目数",
-    "searchLabel": "搜索问题",
-    "searchInputPlaceholder": "输入关键词...",
-    "difficultyLabel": "难度",
+    "searchLabel": "搜索问题与答案",
+    "searchPlaceholder": "输入关键词...",
+    "levelPlaceholder": "选择难度",
     "allLevels": "所有难度",
-    "answerTypeLabel": "答案类型",
+    "typeLabel": "题目类型",
+    "typePlaceholder": "选择类型",
     "allTypes": "所有类型",
-    "mediaFilesLabel": "媒体文件",
-    "mediaFilesPlaceholder": "媒体文件",
-    "anyMedia": "不限",
-    "hasMedia": "有",
-    "noMedia": "无",
+    "mediaLabel": "媒体文件类型",
+    "mediaPlaceholder": "选择媒体类型",
+    "allMedia": "所有媒体",
+    "searchButton": "搜索",
     "loading": "加载中...",
     "applyFilters": "应用筛选",
-    "loadingPleaseWait": "加载中，请稍候..."
+    "loadingPleaseWait": "加载中，请稍候...",
+    "MediaTypes": {
+      "image": "图片",
+      "video": "视频",
+      "audio": "音频",
+      "document": "文档",
+      "reference": "参考资料",
+      "other": "其他"
+    }
   },
   "IndexPanel": {
     "title": "问题索引",
@@ -60,8 +69,8 @@
     "answerExplanation": "答案解释"
   },
   "LanguageSwitcher": {
-    "language": "语言",
-    "english": "英语",
+    "language": "语言（language）",
+    "english": "English",
     "chinese": "中文"
   },
   "Levels": {
@@ -75,25 +84,19 @@
     "multipleChoice": "选择题"
   },
   "DataOverview": {
-    "title": "数据集详情",
-    "paperTitle": "论文来源",
-    "paperName": "On Path to Multimodal Historical Reasoning: HistBench and HistAgent",
-    "citation": "引用",
-    "citationText": "arXiv:2505.20246 [cs.AI] (或 arXiv:2505.20246v2 [cs.AI] for this version)",
-    "doiLink": "DOI链接",
-    "datasetSource": "数据集来源",
-    "githubRepo": "GitHub仓库",
-    "difficultyTitle": "难度说明",
-    "difficultyDescription": "难度的差别主要体现在所需来源处理、历史推理和跨学科复杂性方面的差异。",
-    "level1Title": "• 1级 (基础)",
-    "level1Desc": "– 来源验证和事实检索",
-    "level2Title": "• 2级 (中等)",
-    "level2Desc": "– 文本-图像综合和时间推理",
-    "level3Title": "• 3级 (挑战)",
-    "level3Desc": "– 多语言、多模态和跨学科整合",
-    "languageDistributionTitle": "语言分布",
-    "language": "语言",
-    "questionCount": "题目数",
-    "percentage": "百分比"
+    "title": "数据概览",
+    "totalQuestions": "题目总数",
+    "totalQuestionsDesc": "数据集中的问题总数",
+    "answerTypeDistribution": "题型分布",
+    "language": "涉及语言",
+    "languageDesc": "问题中出现的不同语言",
+    "difficultyDistribution": "难度分布",
+    "difficultyLevels": "难度级别说明",
+    "level1": "事实检索与来源验证",
+    "level2": "文本-图像综合与时序推理",
+    "level3": "多语言、多模态与跨学科整合",
+    "difficultyDesc": "基于所需的推理复杂性划分",
+    "mediaTypeDistribution": "媒体文件类型分布",
+    "mediaTypeDesc": "各类媒体文件在题目中的分布情况"
   }
 } 

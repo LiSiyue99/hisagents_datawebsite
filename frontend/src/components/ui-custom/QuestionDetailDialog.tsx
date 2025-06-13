@@ -23,6 +23,15 @@ export function QuestionDetailDialog({ question, open, onOpenChange, onImagePrev
   }
 
   const renderMedia = (filePath: string) => {
+    // 如果是参考资料(reference)类型，直接显示文本
+    if (filePath.toLowerCase().startsWith('reference:')) {
+      return (
+        <div className="p-4 bg-gray-50 rounded-lg">
+          <p className="text-gray-700 whitespace-pre-wrap">{filePath}</p>
+        </div>
+      );
+    }
+
     const fileName = filePath.split('/').pop() || filePath;
     const mediaUrl = getMediaUrl(filePath);
     return (

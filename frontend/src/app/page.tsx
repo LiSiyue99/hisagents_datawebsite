@@ -45,7 +45,6 @@ export default function HomePage() {
         search: searchTerm,
         level: level,
         answer_type: answerType,
-        has_media: hasMedia,
       })
       setQuestions(data.data)
       setTotalPages(Math.ceil(data.total / data.per_page))
@@ -55,7 +54,7 @@ export default function HomePage() {
     } finally {
       setLoading(false)
     }
-  }, [currentPage, perPage, searchTerm, level, answerType, hasMedia])
+  }, [currentPage, perPage, searchTerm, level, answerType])
 
   useEffect(() => {
     fetchQuestions()
@@ -175,14 +174,6 @@ export default function HomePage() {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{stats.total_questions}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>含媒体文件</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold">{stats.has_media_count}</p>
               </CardContent>
             </Card>
             <Card className="md:col-span-2">

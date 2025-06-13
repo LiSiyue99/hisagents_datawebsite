@@ -83,15 +83,56 @@ class StatsResponse(BaseModel):
     total_questions: int
     level_distribution: dict
     answer_type_distribution: dict
-    has_media_count: int
+    media_type_distribution: dict
 
 class QuestionIndexItem(BaseModel):
     task_id: int
     level: int
     answer_type: str
 
+def get_media_type(filename: str) -> str:
+    """从文件名猜测媒体类型"""
+    if not isinstance(filename, str):
+        return 'other'
+    
+    # 特殊处理问题93和94的reference
+    if filename.lower().startswith('reference:'):
+        return 'reference'
+    
+    if '.' not in filename:
+        return 'other'
+        
+    ext = filename.lower().split('.')[-1]
+    if ext in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'heic', 'tif', 'tiff']:
+        return 'image'
+    if ext in ['mp4', 'mov', 'avi', 'mkv', 'webm']:
+        return 'video'
+    if ext in ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a']:
+        return 'audio'
+    if ext in ['pdf', 'doc', 'docx']:
+        return 'document'
+    return 'other'
+
+def process_media_files(file_name: str) -> List[str]:
+    """处理媒体文件名，包括特殊的reference情况"""
+    if not file_name:
+        return []
+    
+    media_files = []
+    file_names = [f.strip() for f in file_name.split(';') if f.strip()]
+    
+    for fname in file_names:
+        if fname.lower().startswith('reference:'):
+            # 对于reference，直接返回文本内容，不添加任何URL
+            media_files.append(fname)
+        else:
+            # 对于普通媒体文件，返回OSS URL
+            media_files.append(f"{OSS_BASE_URL}/{fname}")
+    
+    return media_files
+
 def load_data():
-    """加载CSV数据"""
+    """加载CSV数据并进行预处理"""
     global df
     if df is None:
         try:
@@ -103,6 +144,30 @@ def load_data():
             df['Answer Type'] = df['Answer Type'].str.replace('Multiple choice', 'multipleChoice')  
             df['Answer Type'] = df['Answer Type'].str.replace('mutipleChioce', 'multipleChoice')
             df['Answer Type'] = df['Answer Type'].str.replace('Exact match', 'exactMatch')
+            
+            # -- 新增：提取媒体文件类型 --
+            def extract_media_types(file_name_str):
+                if not file_name_str:
+                    return []
+                files = [f.strip() for f in file_name_str.split(';') if f.strip()]
+                # 使用 set 来存储唯一类型
+                types = {get_media_type(f) for f in files}
+                return list(types)
+
+            df['media_types'] = df['file_name'].apply(extract_media_types)
+            # --------------------------
+
+            # 📌 数据库特殊修复：任务 93 与 94 媒体列其实是参考资料标题，无扩展名。
+            special_mask = df['task_id'].isin([93, 94])
+            if special_mask.any():
+                # 如果 file_name 没有 reference 前缀，则补全
+                df.loc[special_mask, 'file_name'] = df.loc[special_mask, 'file_name'].apply(
+                    lambda x: x if str(x).lower().startswith('reference:') else f'reference: {x}'
+                )
+                # media_types 强制设为 reference
+                df.loc[special_mask, 'media_types'] = [['reference']]*special_mask.sum()
+            # --------------------------
+
             print(f"✅ 数据加载成功: {len(df)} 条记录")
         except Exception as e:
             print(f"❌ 数据加载失败: {e}")
@@ -131,13 +196,32 @@ async def get_stats():
     
     level_dist = data['Level'].value_counts().to_dict()
     answer_type_dist = data['Answer Type'].value_counts().to_dict()
-    has_media = (data['file_name'] != "").sum()
+
+    # -- 更新：计算媒体类型分布 --
+    allowed_types = {'image','video','audio','document','reference','other'}
+    all_media_types = []
+    for types_list in data['media_types']:
+        # 兼容可能为字符串的异常情况
+        if isinstance(types_list, list):
+            all_media_types.extend(types_list)
+        elif isinstance(types_list, str):
+            all_media_types.append(types_list)
+    media_type_dist = pd.Series(all_media_types).value_counts().to_dict()
+    # 仅保留允许的类别，其他归为 'other'
+    cleaned_dist = {}
+    for k,v in media_type_dist.items():
+        if k in allowed_types:
+            cleaned_dist[k] = int(v)
+        else:
+            cleaned_dist['other'] = cleaned_dist.get('other',0)+int(v)
+    media_type_dist = cleaned_dist
+    # --------------------------
     
     return StatsResponse(
         total_questions=len(data),
         level_distribution=level_dist,
         answer_type_distribution=answer_type_dist,
-        has_media_count=int(has_media)
+        media_type_distribution=media_type_dist
     )
 
 @app.get("/questions", response_model=QuestionResponse, summary="获取题目列表")
@@ -147,7 +231,7 @@ async def get_questions(
     level: Optional[int] = Query(None, description="难度级别筛选"),
     answer_type: Optional[str] = Query(None, description="答案类型筛选"),
     search: Optional[str] = Query(None, description="搜索关键词"),
-    has_media: Optional[bool] = Query(None, description="是否有媒体文件")
+    media_type: Optional[str] = Query(None, description="媒体类型筛选 (image, video, audio, document, reference)")
 ):
     """获取题目列表，支持分页和筛选"""
     data = load_data().copy()
@@ -165,11 +249,9 @@ async def get_questions(
                 data['Final answer'].str.contains(search, case=False, na=False))
         data = data[mask]
     
-    if has_media is not None:
-        if has_media:
-            data = data[data['file_name'] != ""]
-        else:
-            data = data[data['file_name'] == ""]
+    if media_type:
+        # 筛选包含特定媒体类型的题目
+        data = data[data['media_types'].apply(lambda types: media_type in types)]
     
     # 分页
     total = len(data)
@@ -180,7 +262,7 @@ async def get_questions(
     # 转换为响应格式
     questions = []
     for _, row in page_data.iterrows():
-        media_files = find_media_files(row['file_name'])
+        media_files = process_media_files(row['file_name'])
         
         question = QuestionItem(
             task_id=int(row['task_id']),
@@ -224,7 +306,7 @@ async def get_question(task_id: int):
         raise HTTPException(status_code=404, detail="题目不存在")
     
     row = question_data.iloc[0]
-    media_files = find_media_files(row['file_name'])
+    media_files = process_media_files(row['file_name'])
     
     return QuestionItem(
         task_id=int(row['task_id']),

@@ -1,6 +1,7 @@
 {
   "HomePage": {
-    "title": "HistBench Dataset browser",
+    "title": "HistBench Dataset Browser",
+    "subtitle": "A modern exploration platform for historical question datasets",
     "description": "Explore, filter, and view questions from HistBench.",
     "statsTitle": "Data Overview",
     "loadingError": "Failed to load questions. Please ensure the backend service is running (python start_backend.py)",
@@ -8,25 +9,30 @@
     "imagePreviewTitle": "Image Preview",
     "imagePreviewAlt": "Preview",
     "errorOccurred": "An error occurred!",
-    "totalQuestions": "Total Questions",
-    "withMediaFiles": "With Media Files",
-    "difficultyDistribution": "Question Difficulty Distribution",
-    "levelLabel": "Level {key}",
-    "questionsCount": "Questions",
-    "searchLabel": "Search Questions",
-    "searchInputPlaceholder": "Enter keywords...",
-    "difficultyLabel": "Difficulty",
+    "searchLabel": "Search Questions & Answers",
+    "searchPlaceholder": "Enter keywords...",
+    "levelLabel": "Difficulty Level",
+    "levelPlaceholder": "Select level",
     "allLevels": "All Levels",
-    "answerTypeLabel": "Answer Type",
+    "typeLabel": "Question Type",
+    "typePlaceholder": "Select type",
     "allTypes": "All Types",
-    "mediaFilesLabel": "Media Files",
-    "mediaFilesPlaceholder": "Media Files",
-    "anyMedia": "Any",
-    "hasMedia": "Yes",
-    "noMedia": "No",
-    "loading": "Loading...",
+    "mediaLabel": "Media File Type",
+    "mediaPlaceholder": "Select media type",
+    "allMedia": "All Media",
+    "questionsCount": "Questions",
     "applyFilters": "Apply Filters",
-    "loadingPleaseWait": "Loading, please wait..."
+    "searchButton": "Search",
+    "loading": "Loading...",
+    "loadingPleaseWait": "Loading, please wait...",
+    "MediaTypes": {
+      "image": "Image",
+      "video": "Video",
+      "audio": "Audio",
+      "document": "Document",
+      "reference": "Reference",
+      "other": "Other"
+    }
   },
   "IndexPanel": {
     "title": "Question Index",
@@ -60,9 +66,9 @@
     "answerExplanation": "Answer Explanation"
   },
   "LanguageSwitcher": {
-    "language": "Language",
+    "language": "Language(语言)",
     "english": "English",
-    "chinese": "Chinese"
+    "chinese": "中文"
   },
   "Levels": {
     "1": "Easy",
@@ -75,25 +81,19 @@
     "multipleChoice": "Multiple Choice"
   },
   "DataOverview": {
-    "title": "Dataset Details",
-    "paperTitle": "Paper Source",
-    "paperName": "On Path to Multimodal Historical Reasoning: HistBench and HistAgent",
-    "citation": "Cite as",
-    "citationText": "arXiv:2505.20246 [cs.AI] (or arXiv:2505.20246v2 [cs.AI] for this version)",
-    "doiLink": "DOI Link",
-    "datasetSource": "Dataset Source",
-    "githubRepo": "GitHub Repository",
-    "difficultyTitle": "Difficulty Levels",
-    "difficultyDescription": "Differences in difficulty mainly reflect differences in required source processing, historical reasoning, and interdisciplinary complexity.",
-    "level1Title": "• Level 1 (Basic)",
-    "level1Desc": "– Source verification and factual retrieval",
-    "level2Title": "• Level 2 (Intermediate)",
-    "level2Desc": "– Text-image synthesis and temporal reasoning",
-    "level3Title": "• Level 3 (Challenging)",
-    "level3Desc": "– Multilingual, multimodal, and interdisciplinary integration",
-    "languageDistributionTitle": "Language Distribution",
-    "language": "Language",
-    "questionCount": "Question Count",
-    "percentage": "Percentage"
+    "title": "Data Overview",
+    "totalQuestions": "Total Questions",
+    "totalQuestionsDesc": "The total number of questions in the dataset",
+    "answerTypeDistribution": "Question Type Distribution",
+    "language": "Languages Involved",
+    "languageDesc": "Different languages present in the questions",
+    "difficultyDistribution": "Difficulty Distribution",
+    "difficultyLevels": "Difficulty Level Description",
+    "level1": "Factual retrieval and source verification",
+    "level2": "Text-image synthesis and temporal reasoning",
+    "level3": "Multilingual, multimodal, and interdisciplinary integration",
+    "difficultyDesc": "Divided based on the complexity of reasoning required",
+    "mediaTypeDistribution": "Media File Type Distribution",
+    "mediaTypeDesc": "Distribution of different media file types in the questions"
   }
 } 

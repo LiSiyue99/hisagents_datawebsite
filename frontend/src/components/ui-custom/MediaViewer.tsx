@@ -107,6 +107,16 @@ const MediaViewer: React.FC<MediaViewerProps> = ({ fileUrl, fileName }) => {
   const [isViewingInBrowser, setIsViewingInBrowser] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
   const objectUrlsRef = useRef<string[]>([]);
+
+  // 检查是否是reference类型
+  if (fileUrl.toLowerCase().startsWith('reference:')) {
+    return (
+      <div className="p-4 bg-gray-50 rounded-lg">
+        <p className="text-gray-700">{fileUrl}</p>
+      </div>
+    );
+  }
+
   const ext = fileName.split('.').pop()?.toLowerCase() || '';
 
   // 从完整URL中提取文件名
