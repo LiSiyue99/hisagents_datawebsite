@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Globe, Book, Github, Cpu } from 'lucide-react'
 import Image from 'next/image'
 import { PieChart, Pie, Cell, Tooltip as ReTooltip, Legend, ResponsiveContainer, BarChart, XAxis, YAxis, Bar, Tooltip } from 'recharts'
+import DatasetSection from '@/components/ui-custom/DatasetSection'
 
 const languageDistributionData = [
   { name: 'English', count: 228 },
@@ -52,7 +53,9 @@ export default function HomePage() {
   const t = useTranslations('HomePage');
   const tLevels = useTranslations('Levels');
   const tAnswerTypes = useTranslations('AnswerTypes');
-  const tOverview = useTranslations('DataOverview');
+  const tOverview = useTranslations('Overview');
+  const tFilter = useTranslations('FilterControls');
+  const tQuestions = useTranslations('Questions');
   const [questions, setQuestions] = useState<Question[]>([])
   const [allQuestionsForIndex, setAllQuestionsForIndex] = useState<QuestionIndexItem[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
@@ -261,103 +264,89 @@ export default function HomePage() {
       <main className="flex-1 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pt-16">
 
         {/* 顶部标题 */}
-        <header className="mb-6 text-center lg:text-left">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-800 flex items-center justify-center lg:justify-start gap-3">
-            <Book className="w-8 h-8 text-blue-500" />
-            <span>HistBench {t('title')}</span>
+        <header className="text-center mb-8 mt-8">
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900">
+            {t('title')}
           </h1>
-          <p className="mt-2 text-md md:text-lg text-gray-500">{t('subtitle')}</p>
+          <p className="mt-4 text-base md:text-lg text-gray-500 max-w-4xl mx-auto">{t('subtitle')}</p>
         </header>
+
+        {/* 数据集与论文信息 */}
+        <DatasetSection stats={stats} />
 
         {/* 数据概览 */}
         {stats && (
-          <section id="overview" className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4 text-gray-700">{tOverview('title')}</h2>
-            <div className="grid gap-6 lg:gap-8 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4 text-gray-700">{tOverview('heading')}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{tOverview('totalQuestions')}</CardTitle>
-                  <Cpu className="h-4 w-4 text-muted-foreground" />
+                <CardHeader>
+                  <CardTitle>{tOverview('totalQuestions')}</CardTitle>
+                  <p className="text-xs text-muted-foreground pt-1">{tOverview('totalQuestionsDesc')}</p>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.total_questions}</div>
-                  <p className="text-xs text-muted-foreground">{tOverview('totalQuestionsDesc')}</p>
+                  <p className="text-3xl font-bold">{stats.total_questions}</p>
                 </CardContent>
               </Card>
-              <Card className="md:col-span-2">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm font-medium">{tOverview('answerTypeDistribution')}</CardTitle>
-                </CardHeader>
-                <CardContent className="h-[80px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={answerTypeChartData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                      <XAxis type="number" hide />
-                      <YAxis type="category" dataKey="name" hide />
-                      <Tooltip cursor={{fill: '#f3f4f6'}} contentStyle={{backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '0.5rem'}}/>
-                      <Bar dataKey={t('questionsCount')} fill="#8884d8" background={{ fill: '#eee' }} barSize={20} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">{tOverview('language')}</CardTitle>
+                  <CardTitle>{tOverview('languages')}</CardTitle>
+                  <p className="text-xs text-muted-foreground pt-1">{tOverview('languagesDesc')}</p>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{languageDistributionData.length}</div>
-                    <p className="text-xs text-muted-foreground">{tOverview('languageDesc')}</p>
-                </CardContent>
-              </Card>
-            </div>
-            
-            {/* 新整合的卡片 */}
-            <div className="grid gap-6 lg:gap-8 mt-6 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
-              <Card className="lg:col-span-3">
-                <CardHeader>
-                  <CardTitle>{tOverview('difficultyDistribution')}</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="md:col-span-2 h-[250px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie data={levelChartData} dataKey={t('questionsCount')} nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                          {levelChartData.map((entry, index) => <Cell key={`cell-${index}`} fill={LEVEL_COLORS[index % LEVEL_COLORS.length]} />)}
-                        </Pie>
-                        <ReTooltip />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="md:col-span-1 flex flex-col justify-center">
-                    <h3 className="font-semibold mb-2">{tOverview('difficultyLevels')}</h3>
-                    <ul className="space-y-2 text-sm text-gray-600">
-                      <li><span className="text-green-500 font-bold">1:</span> {tOverview('level1')}</li>
-                      <li><span className="text-blue-500 font-bold">2:</span> {tOverview('level2')}</li>
-                      <li><span className="text-red-500 font-bold">3:</span> {tOverview('level3')}</li>
-                    </ul>
-                    <p className="text-xs text-gray-400 mt-4">{tOverview('difficultyDesc')}</p>
-                  </div>
+                  <p className="text-3xl font-bold">26</p>
                 </CardContent>
               </Card>
 
+              {/* Difficulty Distribution */}
+              <Card className="lg:col-span-2 row-span-2">
+                <CardHeader>
+                  <CardTitle>{tOverview('difficultyDistribution')}</CardTitle>
+                  <p className="text-xs text-muted-foreground pt-1">{tOverview('difficultyDesc')}</p>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-2 h-[250px]">
+                    {isClient && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie data={levelChartData} dataKey={t('questionsCount')} nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                             {levelChartData.map((entry, index) => <Cell key={`cell-${index}`} fill={['#34d399', '#60a5fa', '#f87171'][index % 3]} />)}
+                          </Pie>
+                          <ReTooltip />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                  <div className="flex flex-col justify-center text-sm space-y-2">
+                      <h3 className="font-semibold mb-2">{tOverview('difficultyDistribution')}</h3>
+                      <ul className="space-y-1 text-xs text-gray-600">
+                        <li><span className="text-green-500 font-bold">1:</span> {tOverview('level1')}</li>
+                        <li><span className="text-blue-400 font-bold">2:</span> {tOverview('level2')}</li>
+                        <li><span className="text-red-500 font-bold">3:</span> {tOverview('level3')}</li>
+                      </ul>
+                    </div>
+                </CardContent>
+              </Card>
+
+              {/* Media Type Distribution */}
               <Card className="lg:col-span-2">
                 <CardHeader>
                   <CardTitle>{tOverview('mediaTypeDistribution')}</CardTitle>
                   <p className="text-xs text-muted-foreground pt-1">{tOverview('mediaTypeDesc')}</p>
                 </CardHeader>
                 <CardContent className="h-[250px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={mediaTypeChartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip cursor={{fill: '#f3f4f6'}} contentStyle={{backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '0.5rem'}}/>
-                      <Bar dataKey={t('questionsCount')} barSize={30}>
-                        {mediaTypeChartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={['#22c55e', '#3b82f6', '#ef4444', '#f97316'][index % 4]} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
+                  {isClient && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={mediaTypeChartData} dataKey={t('questionsCount')} nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                          {mediaTypeChartData.map((entry, index) => <Cell key={`cell-${index}`} fill={['#22c55e', '#3b82f6', '#ef4444', '#f97316', '#a855f7', '#f59e0b'][index % 6]} />)}
+                        </Pie>
+                        <ReTooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
                 </CardContent>
               </Card>
             </div>

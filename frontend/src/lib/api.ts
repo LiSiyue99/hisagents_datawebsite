@@ -30,6 +30,7 @@ export interface Stats {
   level_distribution: Record<string, number>
   answer_type_distribution: Record<string, number>
   media_type_distribution: Record<string, number>
+  language_distribution: Record<string, number>
 }
 
 export interface GetQuestionsParams {
